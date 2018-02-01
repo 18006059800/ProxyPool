@@ -1,11 +1,28 @@
 group 'com.cv4j.proxypool'
 version '1.0-SNAPSHOT'
 
+buildscript {
+    repositories {
+        maven{url 'http://maven.aliyun.com/nexus/content/groups/public/'}
+        mavenCentral()
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:1.5.8.RELEASE")
+    }
+}
+
 apply plugin: 'java'
+apply plugin: 'org.springframework.boot'
+
+jar {
+    baseName = 'proxypool-web'
+    version =  '0.0.1'
+}
 
 sourceCompatibility = 1.8
 
 repositories {
+    maven{url 'http://maven.aliyun.com/nexus/content/groups/public/'}
     jcenter()
     mavenCentral()
     maven { url 'http://repo.spring.io/release' }
@@ -21,11 +38,14 @@ dependencies {
 
     compile 'org.springframework.boot:spring-boot-starter-web:1.5.8.RELEASE'
     compile 'org.springframework.boot:spring-boot-starter-data-mongodb:+'
+    compile 'org.springframework.boot:spring-boot-starter-aop:1.5.9.RELEASE'
     compile 'org.springframework.boot:spring-boot-starter-thymeleaf:1.5.8.RELEASE'
     compile 'org.springframework.boot:spring-boot-starter-actuator:1.4.2.RELEASE'
 
     compile 'org.quartz-scheduler:quartz:2.3.0'
     compile 'org.springframework:spring-context-support:4.3.12.RELEASE'
+
+    compile 'com.github.ben-manes.caffeine:caffeine:2.6.1'
 
     compile project(':proxypool')
 }

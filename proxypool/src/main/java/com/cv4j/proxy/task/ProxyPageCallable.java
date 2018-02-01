@@ -9,7 +9,6 @@ import com.cv4j.proxy.site.ProxyListPageParserFactory;
 import com.safframework.tony.common.utils.Preconditions;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
-import org.apache.http.client.methods.HttpGet;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -32,7 +31,7 @@ public class ProxyPageCallable implements Callable<List<Proxy>>{
     public List<Proxy> call() throws Exception {
 
         long requestStartTime = System.currentTimeMillis();
-        HttpGet tempRequest = null;
+
         try {
             Page page = HttpManager.get().getWebPage(url);
             int status = page.getStatusCode();
@@ -48,16 +47,46 @@ public class ProxyPageCallable implements Callable<List<Proxy>>{
             if(status == HttpStatus.SC_OK){
                 log.info("Success: "+logStr);
                 return handle(page);
-            }else{
+            } else if (status>=400){ // http请求没有成功，尝试使用代理抓取数据源的策略
+
+                Proxy proxy = null;
+
+                for (int i=0; i<3; i++) {
+
+                    proxy = ProxyPool.getProxy(); // 从代理池中获取数据
+
+                    if (proxy!=null && HttpManager.get().checkProxy(proxy.toHttpHost())) { // 代理可用的情况下
+
+                        requestStartTime = System.currentTimeMillis();
+                        page = HttpManager.get().getWebPage(url,proxy);
+                        status = page.getStatusCode();
+                        requestEndTime = System.currentTimeMillis();
+
+                        sb = new StringBuilder();
+                        sb.append(Thread.currentThread().getName()).append(" ")
+                                .append("  ,executing request ").append(page.getUrl()).append(" ,response statusCode:").append(status)
+                                .append("  ,request cost time:").append(requestEndTime - requestStartTime).append("ms");
+
+                        logStr = sb.toString();
+
+                        if (status == HttpStatus.SC_OK) {
+
+                            log.info("Success: "+logStr);
+                            return handle(page);
+                        } else {
+
+                            log.info("Failure: "+logStr);
+                        }
+                    }
+                }
+
+            } else {
+
                 log.info("Failure: "+logStr);
             }
 
         } catch (IOException e) {
             log.info("IOException: e="+e.getMessage());
-        } finally {
-            if (tempRequest != null){
-                tempRequest.releaseConnection();
-            }
         }
 
         return new ArrayList<Proxy>();

@@ -1,25 +1,30 @@
 package com.cv4j.proxy.web.dao;
 
-import com.cv4j.proxy.domain.Proxy;
+import com.cv4j.proxy.web.domain.ProxyData;
+import com.cv4j.proxy.web.dto.ProxyDataDTO;
 import com.cv4j.proxy.web.dto.QueryProxyDTO;
-import com.cv4j.proxy.web.dto.ResultProxy;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by tony on 2017/11/16.
  */
 public interface ProxyDao {
 
-    void saveProxy(Proxy proxy);
+    boolean saveProxy(ProxyData proxyData);
 
-    List<Proxy> findProxyByCond(QueryProxyDTO queryProxyDTO, boolean isGetAll);
+    List<ProxyData> findProxyByCond(QueryProxyDTO queryProxyDTO, boolean isGetAll);
 
-    List<ResultProxy> findAllProxy();
+    List<ProxyDataDTO> findLimitProxy(int count);
 
-    void updateProxyById(String id);
+    boolean updateProxyById(String id);
 
-    void deleteProxyById(String id);
+    boolean deleteProxyById(String id);
 
     void deleteAll();
+
+    Map<String, Class> getProxyMap();
+
+    List<ProxyData> takeRandomTenProxy();
 }

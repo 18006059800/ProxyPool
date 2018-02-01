@@ -10,7 +10,6 @@ import io.reactivex.functions.Function;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpHost;
 import org.reactivestreams.Publisher;
-import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -22,8 +21,18 @@ import java.util.stream.Collectors;
  * Created by tony on 2017/10/25.
  */
 @Slf4j
-@Component
 public class ProxyManager {
+
+    private ProxyManager() {
+    }
+
+    public static ProxyManager get() {
+        return ProxyManager.Holder.MANAGER;
+    }
+
+    private static class Holder {
+        private static final ProxyManager MANAGER = new ProxyManager();
+    }
 
     /**
      * 抓取代理，成功的代理存放到ProxyPool中
@@ -48,7 +57,6 @@ public class ProxyManager {
                 .flatMap(new Function<List<Proxy>, Publisher<Proxy>>() {
                     @Override
                     public Publisher<Proxy> apply(List<Proxy> proxies) throws Exception {
-
                         if (Preconditions.isNotBlank(proxies)) {
                             List<Proxy> result = proxies
                                     .stream()
@@ -58,7 +66,7 @@ public class ProxyManager {
                                         public boolean test(Proxy proxy) {
                                             HttpHost httpHost = new HttpHost(proxy.getIp(), proxy.getPort(), proxy.getType());
                                             boolean result = HttpManager.get().checkProxy(httpHost);
-                                            log.info("checkProxy " + proxy.getProxyStr() +", "+result);
+                                            if(result) log.info("checkProxy " + proxy.getProxyStr() +", "+result);
                                             return result;
                                         }
                                     }).collect(Collectors.toList());
